@@ -1,0 +1,126 @@
+You are an expert data-to-HTML converter and software engineer. Create a complete, production-ready solution that takes a Slack channel export ZIP and outputs readable, chronologically ordered HTML that I can publish as a static webpage.
+
+Goals
+
+Input: A Slack standard export ZIP (folders per channel with day-by-day .json, plus users.json and optionally channels.json).
+
+Output:
+
+index.html (overview + links)
+
+One HTML page per channel (e.g., #general.html) or a single combined HTML (config toggle)
+
+Requirements:
+
+Loop through all JSON files in each channel folder.
+
+Merge messages across all days, sort ascending by timestamp.
+
+Show everything from each message (timestamps, sender display name, text, files/images, thumbnails, reactions, edits, thread metadata, replies count, bot/app names, message subtype, blocks, attachments, permalink if present, etc.).
+
+Images: Render <img src="..."> for any image file found. If the export contains local file copies, reference them relatively (copy to assets/). If only URLs are present, use those URLs in src. For non-images, render a download/link chip.
+
+Clear, simple layout and typography for readability.
+
+Technical Specs
+
+Language/Stack: Use Python 3 with standard libs + jinja2 and markdown (or mistune) for Slack mrkdwn → HTML. Provide a requirements.txt.
+(If you strongly prefer Node.js, provide an equivalent implementation with marked and nunjucks and keep feature parity.)
+
+Run flow:
+
+python export_to_html.py --zip path/to/export.zip --out out_dir --combined false
+
+Unzip to a temp dir, then process.
+
+Load users.json to map user IDs → display names, and channels.json for channel names/topics if present.
+
+Each channel: read every YYYY-MM-DD.json, collect messages, sort by ts.
+
+Slack Text Rendering:
+
+Convert Slack mrkdwn: *bold*, _italic_, ~strike~, inline code, triple-backtick blocks, lists, blockquotes.
+
+Render <@U123> mentions using users.json to @displayname.
+
+Convert :emoji: to plain text emoji where possible; otherwise show the shortcode.
+
+Linkify <http://...|label> and <http://...> patterns.
+
+Threads & Replies:
+
+If thread_ts present, visually group thread replies under the parent message (indent section).
+
+Show reply count, and within the thread show each reply chronologically.
+
+Files & Images:
+
+For each files[] entry:
+
+If mimetype starts with image/, render an <img> with alt (file name) and a caption (uploader, resolution if provided).
+
+For non-image files, render a button/link with file name, size, and filetype.
+
+If local file paths exist in the export, copy them to out_dir/assets/ and reference relatively. If only external URLs exist, use them directly (no auth handling).
+
+Metadata Rendering (show “everything”):
+
+Under each message, include a compact “Details” disclosure (<details><summary>Details</summary>...) containing a pretty-printed JSON of the original message object so no data is lost.
+
+Surface common metadata inline: ts (human + raw), user/bot_profile.name, subtype, edited, reactions (emoji + counts + who), permalink if present.
+
+HTML/CSS UX:
+
+Minimalist, accessible design (system font stack, adequate contrast, generous line-height).
+
+Sticky channel header with channel name, topic, purpose.
+
+Message layout: avatar (if resolvable from users.json), sender name, human time, message text, attachments, reactions row, details toggle.
+
+Add a simple top search (client-side) filtering messages by text/username (vanilla JS).
+
+Add prev/next day jump links within a channel page.
+
+Index Page:
+
+List all channels with counts of messages, date ranges (first→last), topics.
+
+Links to each channel’s HTML (or anchors in combined mode).
+
+Ordering & Timezones:
+
+Parse ts as epoch seconds and render chronologically ascending.
+
+Display human time in local time (configurable --tz, default system).
+
+Robustness & Edge Cases:
+
+Support messages with blocks and attachments.
+
+Handle deleted users (show “(deleted user)” if unmapped).
+
+Handle bots/apps.
+
+Tolerate missing fields and empty day files.
+
+If reactions present, show emoji + count + tooltip list of users (using name mapping).
+
+Deliverables:
+
+export_to_html.py
+
+templates/channel.html.j2, templates/index.html.j2
+
+static/style.css (clean, simple) and static/script.js (search/filter)
+
+requirements.txt
+
+README.md with exact usage, assumptions about Slack export structure, and hosting instructions (just open index.html or serve via any static host).
+
+Validation:
+
+Provide a small sample channel JSON and show a generated snippet in the answer so I can verify formatting.
+
+Include unit-style parsing tests for: mentions, links, emoji fallbacks, ordering by ts, and thread grouping.
+
+Produce the full implementation, with clear, commented code and ready-to-run instructions.
