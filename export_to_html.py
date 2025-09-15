@@ -308,11 +308,30 @@ class SlackExportConverter:
             if file_data['mimetype'].startswith('image/'):
                 file_data['is_image'] = True
             
-            # Check for local file copies in the export
-            if 'url_private_download' in file_info:
-                # This would be where local files are stored in the export
-                # For now, we'll use the URL as-is
-                pass
+            # Look for local file copies in the export
+            file_id = file_info.get('id')
+            if file_id and self.temp_dir:
+                # Common patterns for local files in Slack exports
+                potential_paths = [
+                    self.temp_dir / file_data['name'],
+                    self.temp_dir / f"{file_id}_{file_data['name']}",
+                    self.temp_dir / file_id,
+                ]
+                
+                for potential_path in potential_paths:
+                    if potential_path.exists():
+                        # Copy to assets directory
+                        assets_dir = self.output_dir / 'assets'
+                        local_filename = f"{file_id}_{file_data['name']}" if file_id else file_data['name']
+                        local_path = assets_dir / local_filename
+                        
+                        try:
+                            shutil.copy2(potential_path, local_path)
+                            file_data['url'] = f"assets/{local_filename}"
+                            file_data['local_path'] = str(local_path)
+                            break
+                        except (OSError, IOError) as e:
+                            print(f"Warning: Could not copy file {potential_path}: {e}")
             
             processed_files.append(file_data)
         
@@ -437,8 +456,12 @@ class SlackExportConverter:
         static_dir = self.output_dir / 'static'
         static_dir.mkdir(exist_ok=True)
         
-        # We'll create these files in the next task
-        pass
+        # Copy CSS and JS files from the static directory
+        source_static = Path('static')
+        if source_static.exists():
+            for file_path in source_static.glob('*'):
+                if file_path.is_file():
+                    shutil.copy2(file_path, static_dir / file_path.name)
     
     def generate_index_page(self, channels_data: List[Dict[str, Any]]) -> None:
         """Generate the index.html page."""
