@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>#{{ channel.display_name }} - Slack Export</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <header class="header channel-header">
+        <div class="container">
+            <div class="channel-info">
+                <h1>#{{ channel.display_name }}</h1>
+                {% if channel.topic %}
+                <p class="channel-topic">{{ channel.topic }}</p>
+                {% endif %}
+                {% if channel.purpose %}
+                <p class="channel-purpose">{{ channel.purpose }}</p>
+                {% endif %}
+                <div class="channel-meta">
+                    <span>{{ channel.message_count }} messages</span>
+                    {% if channel.date_range[0] and channel.date_range[1] %}
+                    <span>{{ channel.date_range[0] }} to {{ channel.date_range[1] }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="navigation">
+                <a href="index.html" class="back-link">← Back to channels</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="search-container">
+            <input type="text" id="messageSearch" placeholder="Search messages..." class="search-input">
+        </div>
+
+        <div class="messages-container">
+            {% for message in channel.messages %}
+            <article class="message" data-ts="{{ message.ts }}" data-user="{{ message.display_name.lower() }}">
+                <div class="message-header">
+                    <span class="user-name">{{ message.display_name }}</span>
+                    <time class="timestamp" datetime="{{ message.raw_ts }}">{{ message.human_time }}</time>
+                    {% if message.edited %}
+                    <span class="edited-indicator">(edited)</span>
+                    {% endif %}
+                    {% if message.subtype %}
+                    <span class="subtype">{{ message.subtype }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="message-content">
+                    {% if message.text %}
+                    <div class="message-text">{{ message.text | safe }}</div>
+                    {% endif %}
+                    
+                    {% if message.files %}
+                    <div class="message-files">
+                        {% for file in message.files %}
+                        <div class="file-attachment">
+                            {% if file.is_image %}
+                            <img src="{{ file.url }}" alt="{{ file.name }}" class="attached-image" loading="lazy">
+                            {% else %}
+                            <a href="{{ file.url }}" class="file-link" target="_blank">
+                                <span class="file-icon">📎</span>
+                                <span class="file-name">{{ file.name }}</span>
+                                {% if file.size > 0 %}
+                                <span class="file-size">({{ (file.size / 1024) | round(1) }} KB)</span>
+                                {% endif %}
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if message.reactions %}
+                    <div class="reactions">
+                        {% for reaction in message.reactions %}
+                        <span class="reaction" title="{{ reaction.users | join(', ') }}">
+                            {{ reaction.emoji }} {{ reaction.count }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if message.replies %}
+                    <div class="thread-replies">
+                        <div class="thread-header">
+                            <span class="thread-count">{{ message.reply_count }} replies</span>
+                        </div>
+                        {% for reply in message.replies %}
+                        <div class="reply-message">
+                            <div class="message-header">
+                                <span class="user-name">{{ reply.display_name }}</span>
+                                <time class="timestamp" datetime="{{ reply.raw_ts }}">{{ reply.human_time }}</time>
+                                {% if reply.edited %}
+                                <span class="edited-indicator">(edited)</span>
+                                {% endif %}
+                            </div>
+                            {% if reply.text %}
+                            <div class="message-text">{{ reply.text | safe }}</div>
+                            {% endif %}
+                            {% if reply.reactions %}
+                            <div class="reactions">
+                                {% for reaction in reply.reactions %}
+                                <span class="reaction" title="{{ reaction.users | join(', ') }}">
+                                    {{ reaction.emoji }} {{ reaction.count }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <details class="message-details">
+                    <summary>Details</summary>
+                    <pre class="raw-json">{{ message.raw_message | tojson(indent=2) }}</pre>
+                </details>
+            </article>
+            {% endfor %}
+        </div>
+
+        {% if channel.messages|length == 0 %}
+        <div class="empty-state">
+            <p>No messages found in this channel.</p>
+        </div>
+        {% endif %}
+    </main>
+
+    <script src="static/script.js"></script>
+</body>
+</html>

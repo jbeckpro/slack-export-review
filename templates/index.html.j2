@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slack Export</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>Slack Export</h1>
+            <p class="subtitle">Generated on {{ generated_time }}</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="search-container">
+            <input type="text" id="channelSearch" placeholder="Search channels..." class="search-input">
+        </div>
+
+        <div class="channels-grid">
+            {% for channel in channels %}
+            <div class="channel-card" data-channel-name="{{ channel.name.lower() }}">
+                <h2 class="channel-name">
+                    {% if combined %}
+                        <a href="combined.html#{{ channel.name }}">#{{ channel.display_name }}</a>
+                    {% else %}
+                        <a href="{{ channel.name }}.html">#{{ channel.display_name }}</a>
+                    {% endif %}
+                </h2>
+                
+                {% if channel.topic %}
+                <p class="channel-topic">{{ channel.topic }}</p>
+                {% endif %}
+                
+                {% if channel.purpose %}
+                <p class="channel-purpose">{{ channel.purpose }}</p>
+                {% endif %}
+                
+                <div class="channel-stats">
+                    <span class="message-count">{{ channel.message_count }} messages</span>
+                    {% if channel.date_range[0] and channel.date_range[1] %}
+                    <span class="date-range">{{ channel.date_range[0] }} to {{ channel.date_range[1] }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if channels|length == 0 %}
+        <div class="empty-state">
+            <p>No channels found in the export.</p>
+        </div>
+        {% endif %}
+    </main>
+
+    <script src="static/script.js"></script>
+</body>
+</html>
