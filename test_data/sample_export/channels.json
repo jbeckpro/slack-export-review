@@ -1,0 +1,21 @@
+[
+  {
+    "id": "C123456789",
+    "name": "general",
+    "created": 1234567890,
+    "creator": "U123456789",
+    "is_archived": false,
+    "is_general": true,
+    "members": ["U123456789", "U987654321"],
+    "topic": {
+      "value": "Company-wide announcements and general discussion",
+      "creator": "U123456789",
+      "last_set": 1234567890
+    },
+    "purpose": {
+      "value": "This channel is for team-wide communication and announcements. Everyone is in this one.",
+      "creator": "U123456789",
+      "last_set": 1234567890
+    }
+  }
+]

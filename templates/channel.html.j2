@@ -51,7 +51,7 @@
                 
                 <div class="message-content">
                     {% if message.text %}
-                    <div class="message-text">{{ message.text | safe }}</div>
+                    <div class="message-text">{{ message.text }}</div>
                     {% endif %}
                     
                     {% if message.files %}
@@ -99,7 +99,7 @@
                                 {% endif %}
                             </div>
                             {% if reply.text %}
-                            <div class="message-text">{{ reply.text | safe }}</div>
+                            <div class="message-text">{{ reply.text }}</div>
                             {% endif %}
                             {% if reply.reactions %}
                             <div class="reactions">

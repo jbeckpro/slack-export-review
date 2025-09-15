@@ -1,0 +1,85 @@
+[
+  {
+    "client_msg_id": "12345678-1234-1234-1234-123456789012",
+    "type": "message",
+    "text": "Happy New Year everyone! :tada: Hope you all had a great holiday break.",
+    "user": "U123456789",
+    "ts": "1704067200.000100",
+    "team": "T123456789",
+    "reactions": [
+      {
+        "name": "tada",
+        "users": ["U987654321"],
+        "count": 1
+      },
+      {
+        "name": "thumbsup",
+        "users": ["U987654321"],
+        "count": 1
+      }
+    ]
+  },
+  {
+    "client_msg_id": "87654321-4321-4321-4321-210987654321",
+    "type": "message",
+    "text": "Thanks <@U123456789>! Looking forward to a productive year ahead. Let's start with our *quarterly planning* meeting this week.",
+    "user": "U987654321",
+    "ts": "1704067260.000200",
+    "team": "T123456789"
+  },
+  {
+    "client_msg_id": "11111111-2222-3333-4444-555555555555",
+    "type": "message",
+    "text": "Great idea! Here's the agenda:\n• Q1 goals review\n• Budget planning\n• Team roadmap\n\n```\nMeeting: Quarterly Planning\nDate: January 3rd, 2024\nTime: 10:00 AM EST\nLocation: Conference Room A\n```",
+    "user": "U123456789",
+    "ts": "1704067320.000300",
+    "team": "T123456789",
+    "thread_ts": "1704067320.000300"
+  },
+  {
+    "client_msg_id": "22222222-3333-4444-5555-666666666666",
+    "type": "message",
+    "text": "Perfect! I'll send out calendar invites. Should we include the _entire_ team or just department heads?",
+    "user": "U987654321",
+    "ts": "1704067380.000400",
+    "team": "T123456789",
+    "thread_ts": "1704067320.000300"
+  },
+  {
+    "client_msg_id": "33333333-4444-5555-6666-777777777777",
+    "type": "message",
+    "text": "Let's include everyone. Transparency is key! :white_check_mark:",
+    "user": "U123456789",
+    "ts": "1704067440.000500",
+    "team": "T123456789",
+    "thread_ts": "1704067320.000300",
+    "reactions": [
+      {
+        "name": "white_check_mark",
+        "users": ["U987654321"],
+        "count": 1
+      }
+    ]
+  },
+  {
+    "type": "message",
+    "text": "Weekly status update: All systems operational :green_heart:",
+    "bot_id": "B123456789",
+    "username": "StatusBot",
+    "bot_profile": {
+      "id": "B123456789",
+      "deleted": false,
+      "name": "StatusBot",
+      "updated": 1234567890,
+      "app_id": "A123456789",
+      "icons": {
+        "image_36": "https://example.com/bot_36.png",
+        "image_48": "https://example.com/bot_48.png",
+        "image_72": "https://example.com/bot_72.png"
+      },
+      "team_id": "T123456789"
+    },
+    "ts": "1704067500.000600",
+    "team": "T123456789"
+  }
+]

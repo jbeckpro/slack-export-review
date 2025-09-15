@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>#sample_export - Slack Export</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <header class="header channel-header">
+        <div class="container">
+            <div class="channel-info">
+                <h1>#sample_export</h1>
+                
+                
+                <div class="channel-meta">
+                    <span>3 messages</span>
+                    
+                </div>
+            </div>
+            <div class="navigation">
+                <a href="index.html" class="back-link">← Back to channels</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="search-container">
+            <input type="text" id="messageSearch" placeholder="Search messages..." class="search-input">
+        </div>
+
+        <div class="messages-container">
+            
+            <article class="message" data-ts="" data-user="unknown user">
+                <div class="message-header">
+                    <span class="user-name">Unknown User</span>
+                    <time class="timestamp" datetime=""></time>
+                    
+                    
+                </div>
+                
+                <div class="message-content">
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </div>
+                
+                <details class="message-details">
+                    <summary>Details</summary>
+                    <pre class="raw-json">{
+  "created": 1234567890,
+  "creator": "U123456789",
+  "id": "C123456789",
+  "is_archived": false,
+  "is_general": true,
+  "members": [
+    "U123456789",
+    "U987654321"
+  ],
+  "name": "general",
+  "purpose": {
+    "creator": "U123456789",
+    "last_set": 1234567890,
+    "value": "This channel is for team-wide communication and announcements. Everyone is in this one."
+  },
+  "topic": {
+    "creator": "U123456789",
+    "last_set": 1234567890,
+    "value": "Company-wide announcements and general discussion"
+  }
+}</pre>
+                </details>
+            </article>
+            
+            <article class="message" data-ts="" data-user="unknown user">
+                <div class="message-header">
+                    <span class="user-name">Unknown User</span>
+                    <time class="timestamp" datetime=""></time>
+                    
+                    
+                </div>
+                
+                <div class="message-content">
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </div>
+                
+                <details class="message-details">
+                    <summary>Details</summary>
+                    <pre class="raw-json">{
+  "color": "9f69e7",
+  "deleted": false,
+  "has_2fa": false,
+  "id": "U123456789",
+  "is_admin": true,
+  "is_app_user": false,
+  "is_bot": false,
+  "is_owner": false,
+  "is_primary_owner": false,
+  "is_restricted": false,
+  "is_ultra_restricted": false,
+  "name": "john.doe",
+  "profile": {
+    "avatar_hash": "abc123",
+    "display_name": "johndoe",
+    "display_name_normalized": "johndoe",
+    "email": "john.doe@example.com",
+    "image_192": "https://example.com/avatar1_192.jpg",
+    "image_24": "https://example.com/avatar1_24.jpg",
+    "image_32": "https://example.com/avatar1_32.jpg",
+    "image_48": "https://example.com/avatar1_48.jpg",
+    "image_512": "https://example.com/avatar1_512.jpg",
+    "image_72": "https://example.com/avatar1_72.jpg",
+    "image_original": "https://example.com/avatar1.jpg",
+    "real_name": "John Doe",
+    "real_name_normalized": "John Doe",
+    "status_emoji": "",
+    "status_text": "",
+    "team": "T123456789"
+  },
+  "real_name": "John Doe",
+  "team_id": "T123456789",
+  "tz": "America/New_York",
+  "tz_label": "Eastern Standard Time",
+  "tz_offset": -18000,
+  "updated": 1234567890
+}</pre>
+                </details>
+            </article>
+            
+            <article class="message" data-ts="" data-user="unknown user">
+                <div class="message-header">
+                    <span class="user-name">Unknown User</span>
+                    <time class="timestamp" datetime=""></time>
+                    
+                    
+                </div>
+                
+                <div class="message-content">
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </div>
+                
+                <details class="message-details">
+                    <summary>Details</summary>
+                    <pre class="raw-json">{
+  "color": "e7392d",
+  "deleted": false,
+  "has_2fa": true,
+  "id": "U987654321",
+  "is_admin": false,
+  "is_app_user": false,
+  "is_bot": false,
+  "is_owner": false,
+  "is_primary_owner": false,
+  "is_restricted": false,
+  "is_ultra_restricted": false,
+  "name": "jane.smith",
+  "profile": {
+    "avatar_hash": "def456",
+    "display_name": "janesmith",
+    "display_name_normalized": "janesmith",
+    "email": "jane.smith@example.com",
+    "image_192": "https://example.com/avatar2_192.jpg",
+    "image_24": "https://example.com/avatar2_24.jpg",
+    "image_32": "https://example.com/avatar2_32.jpg",
+    "image_48": "https://example.com/avatar2_48.jpg",
+    "image_512": "https://example.com/avatar2_512.jpg",
+    "image_72": "https://example.com/avatar2_72.jpg",
+    "image_original": "https://example.com/avatar2.jpg",
+    "real_name": "Jane Smith",
+    "real_name_normalized": "Jane Smith",
+    "status_emoji": ":house_with_garden:",
+    "status_text": "Working remotely",
+    "team": "T123456789"
+  },
+  "real_name": "Jane Smith",
+  "team_id": "T123456789",
+  "tz": "America/Los_Angeles",
+  "tz_label": "Pacific Standard Time",
+  "tz_offset": -28800,
+  "updated": 1234567891
+}</pre>
+                </details>
+            </article>
+            
+        </div>
+
+        
+    </main>
+
+    <script src="static/script.js"></script>
+</body>
+</html>

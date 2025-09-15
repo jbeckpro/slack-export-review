@@ -6,6 +6,7 @@ Converts a Slack standard export ZIP into readable HTML pages.
 """
 
 import argparse
+import html
 import json
 import os
 import re
@@ -52,27 +53,36 @@ class SlackMarkdownConverter:
         }
     
     def convert_user_mentions(self, text: str) -> str:
-        """Convert <@U123> mentions to @displayname."""
+        """Convert &lt;@U123&gt; mentions to @displayname (after HTML escaping)."""
         def replace_mention(match):
             user_id = match.group(1)
-            display_name = self.users_map.get(user_id, f"@unknown-{user_id}")
+            display_name = html.escape(self.users_map.get(user_id, f"unknown-{user_id}"))
             return f'<span class="user-mention">@{display_name}</span>'
         
-        return re.sub(r'<@([A-Z0-9]+)>', replace_mention, text)
+        return re.sub(r'&lt;@([A-Z0-9]+)&gt;', replace_mention, text)
     
     def convert_links(self, text: str) -> str:
-        """Convert <http://...|label> and <http://...> patterns."""
-        # Handle <url|label> format
+        """Convert &lt;http://...&gt; patterns (after HTML escaping)."""
+        # Handle &lt;url|label&gt; format
+        def replace_link_with_label(match):
+            url = match.group(1).replace('&amp;', '&')  # Unescape URL
+            label = match.group(2)
+            return f'<a href="{html.escape(url)}" target="_blank">{label}</a>'
+        
         text = re.sub(
-            r'<(https?://[^|>]+)\|([^>]+)>',
-            r'<a href="\1" target="_blank">\2</a>',
+            r'&lt;(https?://[^|&]+)\|([^&]+)&gt;',
+            replace_link_with_label,
             text
         )
         
-        # Handle <url> format
+        # Handle &lt;url&gt; format
+        def replace_link(match):
+            url = match.group(1).replace('&amp;', '&')  # Unescape URL
+            return f'<a href="{html.escape(url)}" target="_blank">{url}</a>'
+        
         text = re.sub(
-            r'<(https?://[^>]+)>',
-            r'<a href="\1" target="_blank">\1</a>',
+            r'&lt;(https?://[^&]+)&gt;',
+            replace_link,
             text
         )
         
@@ -91,27 +101,36 @@ class SlackMarkdownConverter:
         if not text:
             return ""
         
-        # Convert user mentions
+        # First escape HTML to prevent XSS
+        text = html.escape(text)
+        
+        # Convert user mentions (after escaping, so we need to handle &lt; and &gt;)
         text = self.convert_user_mentions(text)
         
-        # Convert links
+        # Convert links (after escaping)
         text = self.convert_links(text)
         
         # Convert emoji
         text = self.convert_emoji(text)
         
-        # Handle inline code (single backticks)
-        text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
+        # Handle inline code (single backticks) - escape content inside code
+        def escape_code(match):
+            code_content = match.group(1)
+            return f'<code>{code_content}</code>'
+        text = re.sub(r'`([^`]+)`', escape_code, text)
         
         # Handle basic Slack formatting
         text = re.sub(r'\*([^*]+)\*', r'<strong>\1</strong>', text)  # Bold
         text = re.sub(r'_([^_]+)_', r'<em>\1</em>', text)  # Italic
         text = re.sub(r'~([^~]+)~', r'<del>\1</del>', text)  # Strikethrough
         
-        # Handle code blocks (triple backticks)
+        # Handle code blocks (triple backticks) - escape content inside code blocks
+        def escape_code_block(match):
+            code_content = match.group(1)
+            return f'<pre><code>{code_content}</code></pre>'
         text = re.sub(
             r'```([^`]*)```',
-            r'<pre><code>\1</code></pre>',
+            escape_code_block,
             text,
             flags=re.DOTALL
         )
@@ -122,11 +141,11 @@ class SlackMarkdownConverter:
         in_blockquote = False
         
         for line in lines:
-            if line.strip().startswith('>'):
+            if line.strip().startswith('&gt;'):  # After HTML escaping
                 if not in_blockquote:
                     processed_lines.append('<blockquote>')
                     in_blockquote = True
-                processed_lines.append(line.strip()[1:].strip())
+                processed_lines.append(line.strip()[4:].strip())  # Remove &gt;
             else:
                 if in_blockquote:
                     processed_lines.append('</blockquote>')
@@ -177,9 +196,10 @@ class SlackExportConverter:
     
     def load_users(self) -> None:
         """Load users.json and create user ID to display name mapping."""
-        if not self.temp_dir:
+        export_root = self.find_export_root()
+        if not export_root:
             return
-        users_file = self.temp_dir / 'users.json'
+        users_file = export_root / 'users.json'
         
         if users_file.exists():
             with open(users_file, 'r', encoding='utf-8') as f:
@@ -198,9 +218,10 @@ class SlackExportConverter:
     
     def load_channels(self) -> None:
         """Load channels.json if available."""
-        if not self.temp_dir:
+        export_root = self.find_export_root()
+        if not export_root:
             return
-        channels_file = self.temp_dir / 'channels.json'
+        channels_file = export_root / 'channels.json'
         
         if channels_file.exists():
             with open(channels_file, 'r', encoding='utf-8') as f:
@@ -219,12 +240,20 @@ class SlackExportConverter:
         """Get all messages from a channel directory, sorted by timestamp."""
         messages = []
         
-        # Process all JSON files in the channel directory
+        # Process only JSON files that match date pattern (YYYY-MM-DD.json)
         for json_file in sorted(channel_dir.glob('*.json')):
+            # Skip non-date files like users.json, channels.json
+            if not re.match(r'\d{4}-\d{2}-\d{2}\.json$', json_file.name):
+                continue
+                
             try:
                 with open(json_file, 'r', encoding='utf-8') as f:
                     day_messages = json.load(f)
-                    messages.extend(day_messages)
+                    # Ensure we got a list of messages
+                    if isinstance(day_messages, list):
+                        messages.extend(day_messages)
+                    else:
+                        print(f"Warning: {json_file} does not contain a list of messages")
             except (json.JSONDecodeError, UnicodeDecodeError) as e:
                 print(f"Warning: Could not read {json_file}: {e}")
         
@@ -366,6 +395,50 @@ class SlackExportConverter:
         
         return main_messages
     
+    def find_export_root(self) -> Path:
+        """Find the actual export root directory."""
+        if not self.temp_dir:
+            raise ValueError("Temp directory not initialized")
+        
+        # Check if there's a single directory that contains the export
+        items = list(self.temp_dir.iterdir())
+        
+        # If there's only one directory and it contains users.json or channels.json, use that
+        if len(items) == 1 and items[0].is_dir():
+            potential_root = items[0]
+            if (potential_root / 'users.json').exists() or (potential_root / 'channels.json').exists():
+                return potential_root
+        
+        # Otherwise, use the temp directory itself
+        return self.temp_dir
+    
+    def find_channels(self) -> List[str]:
+        """Find all channel directories in the extracted export."""
+        export_root = self.find_export_root()
+        if not export_root:
+            return []
+        
+        channels = []
+        
+        # Look for directories that could be channels
+        for item in export_root.iterdir():
+            if item.is_dir():
+                # Skip if this is a known non-channel directory
+                if item.name in ['__MACOSX', '.git', 'assets']:
+                    continue
+                    
+                # Check if directory contains message files (JSON files that look like dates)
+                has_messages = any(
+                    f.suffix == '.json' and re.match(r'\d{4}-\d{2}-\d{2}\.json', f.name)
+                    for f in item.iterdir()
+                    if f.is_file()
+                )
+                
+                if has_messages:
+                    channels.append(item.name)
+        
+        return sorted(channels)
+    
     def process_channel(self, channel_name: str, channel_dir: Path) -> Dict[str, Any]:
         """Process a single channel and return processed data."""
         messages = self.get_channel_messages(channel_dir)
@@ -373,6 +446,10 @@ class SlackExportConverter:
         # Process each message
         processed_messages = []
         for message in messages:
+            # Skip non-message entries
+            if not isinstance(message, dict) or message.get('type') != 'message':
+                continue
+                
             # Get user info
             user_id = message.get('user')
             bot_id = message.get('bot_id')
@@ -409,8 +486,12 @@ class SlackExportConverter:
         # Group threads
         grouped_messages = self.group_threads(processed_messages)
         
-        # Get channel info
-        channel_info = self.channels_map.get(channel_name, {})
+        # Get channel info from channels_map using channel name
+        channel_info = {}
+        for channel_id, info in self.channels_map.items():
+            if info.get('name') == channel_name:
+                channel_info = info
+                break
         
         return {
             'name': channel_name,
@@ -513,24 +594,40 @@ class SlackExportConverter:
         # Initialize markdown converter with users map
         self.markdown_converter = SlackMarkdownConverter(self.users_map)
         
+        print("Finding channels...")
+        channel_names = self.find_channels()
+        
+        if not channel_names:
+            print("Warning: No channels found in the export")
+            return
+        
+        print(f"Found channels: {', '.join(channel_names)}")
+        
         print("Processing channels...")
         channels_data = []
         
-        # Find all channel directories
-        for item in extract_dir.iterdir():
-            if item.is_dir() and not item.name.startswith('.'):
-                # Skip if it doesn't contain JSON files
-                if not list(item.glob('*.json')):
-                    continue
+        export_root = self.find_export_root()
+        for channel_name in channel_names:
+            channel_dir = export_root / channel_name
+            if channel_dir.exists() and channel_dir.is_dir():
+                print(f"Processing channel: {channel_name}")
+                channel_data = self.process_channel(channel_name, channel_dir)
                 
-                print(f"Processing channel: {item.name}")
-                channel_data = self.process_channel(item.name, item)
-                channels_data.append(channel_data)
+                # Only include channels that have actual messages
+                if channel_data['message_count'] > 0:
+                    channels_data.append(channel_data)
+                else:
+                    print(f"Skipping channel {channel_name} - no messages found")
+        
+        if not channels_data:
+            print("Warning: No channels with messages found")
+            return
         
         print("Generating HTML...")
         self.generate_html(channels_data)
         
         print(f"Conversion complete! Output saved to: {self.output_dir}")
+        print(f"Processed {len(channels_data)} channels with messages")
         
         # Cleanup
         if self.temp_dir:
